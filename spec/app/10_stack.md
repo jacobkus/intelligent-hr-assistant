@@ -122,3 +122,16 @@ Source: Derived from `spec/app/00_app.md` (PRD) and repository conventions.
 - Out of scope: Admin UI for content editing, multi‑tenant RBAC, document uploads via UI, complex analytics dashboard, persistent conversation history, rich citation UI.
 
 
+
+## 18) Evaluation & Quality
+
+- Tooling: Promptfoo for prompt-level and end-to-end (HTTP provider) evaluations.
+- Providers:
+  - Prompt-only: OpenAI (e.g., `openai:gpt-5-mini`) with explicit `context` variables.
+  - End-to-end: HTTP provider calling `POST /api/chat?debug=1` with `transformResponse` to extract `answer`, and `contextTransform` to extract `retrieved_docs` for context metrics.
+- Metrics:
+  - Model-graded: `context-faithfulness`, `context-relevance`, `answer-relevance`, and configurable `llm-rubric`.
+  - Deterministic: `icontains`, `contains-all/any`, `regex`, `javascript` for brevity/latency heuristics.
+- Dataset: Versioned at `tests/eval/hr_dataset.yaml` with representative HR queries and expected key facts; include no‑context cases.
+- CI gates: ≥ 80% overall pass rate; ≥ 95% on no‑context subset. Fail build on threshold miss.
+- API support: `?debug=1` (or `X-Debug: 1`) returns `answer`, `retrieved_docs` (content, score, source_uri, chunk_id) to power `contextTransform`.

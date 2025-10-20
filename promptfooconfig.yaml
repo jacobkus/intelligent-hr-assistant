@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+
+# Learn more about building a configuration: https://promptfoo.dev/docs/configuration/guide
+
+description: "HR Assistant RAG evaluation"
+
+prompts:
+  - "Answer strictly from provided context if available. If insufficient, say you don't know.\n\nQuestion: {{query}}"
+
+providers:
+  # Prompt-only baseline
+  - openai:gpt-5-nano
+  # End-to-end via local API (enable dev server):
+  - id: http
+    config:
+      url: http://localhost:3000/api/chat?debug=1
+      method: POST
+      headers:
+        Content-Type: application/json
+      body:
+        messages:
+          - role: user
+            content: "{{query}}"
+      transformResponse: json
+
+defaultTest:
+  assert:
+    # Prefer concise outputs
+    - type: javascript
+      value: "output && output.length < 1200 ? 1 : 0"
+    - type: context-faithfulness
+      # Extract context from HTTP provider debug payload; fallback to output string for prompt-only providers
+      contextTransform: 'output && output.retrieved_docs ? output.retrieved_docs.map(d => d.content).join("\n") : (typeof output === "string" ? output : (output && output.answer ? output.answer : JSON.stringify(output)))'
+      threshold: 0.8
+    - type: answer-relevance
+      threshold: 0.8
+    - type: llm-rubric
+      value: |
+        The answer must be grounded in the provided context. If there is insufficient context, clearly state that you don't know.
+      threshold: 0.7
+    - type: icontains
+      value: "{{expected_phrase}}"
+  options:
+    transform: 'output && output.answer ? output.answer : output'
+
+tests:
+  # Load the HR dataset
+  - file://tests/eval/hr_dataset.yaml

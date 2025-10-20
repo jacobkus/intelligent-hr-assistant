@@ -82,8 +82,13 @@ FR-015 Rate limiting and input constraints
 FR-016 Internationalization (MVP-ready)
 - Enable queries and answers in English; provide groundwork to handle Polish as a near-term enhancement.
 
-FR-017 Evaluation dataset
-- Maintain a small set of sample questions with expected answers to verify retrieval coverage and response quality.
+FR-017 Evaluation and quality gates
+- Maintain a versioned evaluation dataset located at `tests/eval/hr_dataset.yaml`.
+- Use Promptfoo to run both prompt-only and end-to-end (HTTP provider) evaluations.
+- Metrics: model-graded `context-faithfulness`, `context-relevance`, `answer-relevance`, flexible `llm-rubric`; deterministic checks like `icontains`, `javascript` length/latency heuristics.
+- No‑context cases must trigger a clear fallback answer (no hallucinations).
+- CI gate: pass rate ≥ 80% overall; no‑context subset ≥ 95%.
+- Document commands in `README.md` and add `eval`, `eval:promptfoo`, and `eval:ci` scripts in `package.json`.
 
 FR-018 Accessibility
 - Keyboard navigation, screen-reader friendly labels, and sufficient color contrast.
@@ -279,6 +284,7 @@ Deflection and efficiency
 Quality and accuracy
 - Human-rated helpfulness/accuracy ≥ 80% on the evaluation question set
 - No-context handling present in 100% of low-confidence cases
+ - Promptfoo pass rate ≥ 80% overall; ≥ 95% on no‑context subset
 
 Reliability and operations
 - Uptime ≥ 99.5% for chat and retrieval endpoints

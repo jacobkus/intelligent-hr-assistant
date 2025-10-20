@@ -36,6 +36,12 @@ Ensure solid project foundations.
 - **HR knowledge base:** Prepare at least 10 diverse text documents, e.g., about vacation policy, benefits, remote work, onboarding, etc.
 - **Sample questions:** Create a list of test queries with expected answers to facilitate verification of system functionality.
 
+## ✅ Evaluation Loop (Promptfoo)
+
+- Maintain an HR eval dataset at `spec/eval/hr_dataset.yaml`.
+- Run prompt-level and end-to-end (HTTP provider) evals locally and in CI.
+- Use `context-faithfulness`, `context-relevance`, `answer-relevance`, and `llm-rubric` metrics; enforce pass-rate gates.
+
 ## 💡 Tips and Best Practices
 
 - **Use Vercel AI SDK:** This library is the standard in the Next.js ecosystem and will save you tons of work when implementing streaming.
