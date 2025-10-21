@@ -4,7 +4,7 @@ Build a fully functional, intelligent HR chatbot based on RAG (Retrieval-Augment
 
 ## ⚙ Backend (API Logic in Next.js Route Handlers)
 
-All server-side logic should be implemented directly in Next.js. Use a popular library such as DrizzleORM for database interactions.
+All server-side logic should be implemented directly in Next.js. Use Drizzle ORM for database interactions.
 
 - **Data seeding:** Prepare a script (e.g., in TypeScript) that connects to the PostgreSQL database and loads sample HR documents into the appropriate table.
 - **Generating embeddings:** Implement a process that calculates and saves vectors (embeddings) for each document in the knowledge base using a chosen model (e.g., from OpenAI).
@@ -31,14 +31,14 @@ Create a modern and intuitive user interface, fully leveraging the potential of 
 
 Ensure solid project foundations.
 
-- **Database configuration:** Prepare SQL scripts or migrations (e.g., using Prisma) to create necessary tables and activate the pgvector extension in your PostgreSQL instance.
+- **Database configuration:** Prepare migrations using Drizzle ORM to create necessary tables and activate the pgvector extension in your PostgreSQL instance.
 - **Environment variables:** Configure the project so that API keys and database connection strings are loaded from the .env.local file, following Next.js standards.
 - **HR knowledge base:** Prepare at least 10 diverse text documents, e.g., about vacation policy, benefits, remote work, onboarding, etc.
 - **Sample questions:** Create a list of test queries with expected answers to facilitate verification of system functionality.
 
 ## ✅ Evaluation Loop (Promptfoo)
 
-- Maintain an HR eval dataset at `spec/eval/hr_dataset.yaml`.
+- Maintain an HR eval dataset at `tests/eval/hr_dataset.yaml`.
 - Run prompt-level and end-to-end (HTTP provider) evals locally and in CI.
 - Use `context-faithfulness`, `context-relevance`, `answer-relevance`, and `llm-rubric` metrics; enforce pass-rate gates.
 
@@ -61,4 +61,4 @@ Want to stand out? Consider implementing one of the following features:
 - **Question categorization:** System for tagging questions (e.g., vacations, benefits, IT).
 - **Rating system:** Ability for users to rate response quality (👍 / 👎).
 - **Analytics:** Collecting and displaying data on the most popular queries.
-- **Multilingualism:** Support for queries in Polish and English.
+- **Multilingualism:** Support for queries in Polish (MVP supports English with groundwork for Polish).

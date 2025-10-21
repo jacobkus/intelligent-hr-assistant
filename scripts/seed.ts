@@ -5,6 +5,7 @@
  * generates embeddings, and stores everything in PostgreSQL with pgvector
  */
 
+import "dotenv/config";
 import { createHash } from "node:crypto";
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -98,7 +99,8 @@ async function seed() {
       const embeddingResults = await generateEmbeddings(chunkContents);
       console.log(`  🔢 Generated ${embeddingResults.length} embeddings`);
 
-      // Insert chunks with embeddings
+      // Insert chunks with embeddings (batch insert)
+      const chunksToInsert = [];
       for (let i = 0; i < documentChunks.length; i++) {
         const chunk = documentChunks[i];
         const embedding = embeddingResults[i]?.embedding;
@@ -108,16 +110,19 @@ async function seed() {
           continue;
         }
 
-        await db.insert(chunks).values({
+        chunksToInsert.push({
           documentId: existingDoc.id,
           chunkIndex: chunk.chunkIndex,
           content: chunk.content,
           sectionTitle: chunk.sectionTitle,
           embedding: embedding,
         });
+      }
 
-        totalChunks++;
-        totalEmbeddings++;
+      if (chunksToInsert.length > 0) {
+        await db.insert(chunks).values(chunksToInsert);
+        totalChunks += chunksToInsert.length;
+        totalEmbeddings += chunksToInsert.length;
       }
 
       console.log(`  ✅ Completed\n`);

@@ -1,5 +1,7 @@
 #!/usr/bin/env bun
 
+import "dotenv/config";
+
 // Minimal local harness to sanity-check /api/chat debug mode without Promptfoo
 const question =
   process.argv.slice(2).join(" ") || "What is the parental leave policy?";

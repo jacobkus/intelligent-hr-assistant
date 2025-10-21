@@ -2,7 +2,7 @@
 
 Status: MVP scope
 
-Source: Derived from `spec/app/00_app.md` (PRD) and repository conventions.
+Source: Derived from `spec/app/10_app.md` (PRD) and repository conventions.
 
 ## 1) Guiding Principles
 - **Serverless-first**: Optimize for cold-start and scalability on serverless Postgres and edge-friendly runtimes.

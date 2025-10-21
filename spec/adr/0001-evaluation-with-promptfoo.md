@@ -15,7 +15,7 @@ The HR Assistant is a RAG application where quality depends on both retrieval an
 ## Decision
 
 Adopt Promptfoo for evaluations with two providers:
-1. Prompt-only provider using OpenAI (e.g., `openai:gpt-5-nano`) to validate prompt engineering with explicit `context` variables
+1. Prompt-only provider using OpenAI (e.g., `openai:gpt-5-mini`) to validate prompt engineering with explicit `context` variables
 2. HTTP provider calling our `POST /api/chat?debug=1` endpoint to evaluate the full RAG pipeline
 
 Metrics:

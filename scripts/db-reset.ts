@@ -5,6 +5,7 @@
  * WARNING: This will delete all data - use only in development!
  */
 
+import "dotenv/config";
 import { neon } from "@neondatabase/serverless";
 import { env } from "@/lib/env.mjs";
 
@@ -15,13 +16,18 @@ async function resetDatabase() {
   console.log("🗄️  Database:", env.DATABASE_URL.split("@")[1]?.split("/")[0]);
 
   try {
-    console.log("\n🗑️  Dropping existing tables...");
+    console.log("\n🗑️  Dropping existing tables and extensions...");
 
     // Drop tables in correct order (respecting foreign keys)
     await sql`DROP TABLE IF EXISTS chunks CASCADE`;
     await sql`DROP TABLE IF EXISTS documents CASCADE`;
 
-    console.log("✅ Tables dropped successfully");
+    // Drop extensions for complete reset
+    await sql`DROP EXTENSION IF EXISTS vector CASCADE`;
+    await sql`DROP EXTENSION IF EXISTS pgcrypto CASCADE`;
+
+    console.log("✅ Tables and extensions dropped successfully");
+    console.log("💡 Run 'bun run db:migrate' next to recreate schema");
   } catch (error) {
     console.error("❌ Error resetting database:", error);
     process.exit(1);

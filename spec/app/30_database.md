@@ -58,7 +58,33 @@ Vector search
 - No RLS policies are defined for `documents` or `chunks`.
 
 
-## 5. Additional notes and design decisions
+## 5. Migration strategy (MVP)
+
+**Migration workflow**
+1. **Schema changes**: Edit TypeScript schema files in `lib/db/schema/`
+2. **Generate migration**: Run `bun run db:generate` (wraps `drizzle-kit generate`)
+3. **Review SQL**: Inspect generated migration file in `lib/db/migrations/`
+4. **Apply migration**: Run `bun run db:migrate` (wraps `drizzle-kit migrate`)
+
+**Naming convention**
+- Drizzle Kit auto-generates timestamped migration files (e.g., `0000_initial_schema.sql`)
+- No manual naming required for MVP
+
+**Running migrations**
+- **Development**: Run migrations manually via `bun run db:migrate` after pulling schema changes
+- **Production**: Apply migrations before deployment (CI/CD step or manual run)
+- **First-time setup**: Migrations create extensions (`pgcrypto`, `vector`) and all tables
+
+**Rollback strategy (MVP)**
+- Manual rollback via custom SQL if needed (Drizzle Kit has limited rollback support)
+- For MVP: avoid destructive changes; use additive migrations where possible
+- Backup database before running migrations in production
+
+**Testing migrations**
+- Use `bun run db:reset` (drops, recreates, seeds) in development to validate full migration path
+- Test against Neon branch database before applying to production
+
+## 6. Additional notes and design decisions
 
 **Extensions** (install in first migration)
 - `CREATE EXTENSION IF NOT EXISTS pgcrypto;` (for `gen_random_uuid()`)
