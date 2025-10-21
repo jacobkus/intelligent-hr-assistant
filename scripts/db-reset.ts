@@ -22,11 +22,14 @@ async function resetDatabase() {
     await sql`DROP TABLE IF EXISTS chunks CASCADE`;
     await sql`DROP TABLE IF EXISTS documents CASCADE`;
 
+    // Drop Drizzle migration tracking schema
+    await sql`DROP SCHEMA IF EXISTS drizzle CASCADE`;
+
     // Drop extensions for complete reset
     await sql`DROP EXTENSION IF EXISTS vector CASCADE`;
     await sql`DROP EXTENSION IF EXISTS pgcrypto CASCADE`;
 
-    console.log("✅ Tables and extensions dropped successfully");
+    console.log("✅ Tables, extensions, and migration journal dropped successfully");
     console.log("💡 Run 'bun run db:migrate' next to recreate schema");
   } catch (error) {
     console.error("❌ Error resetting database:", error);
