@@ -1,5 +1,6 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import { embedMany } from "ai";
+import { Timeouts, withTimeout } from "@/lib/api/timeout";
 import { env } from "@/lib/env.mjs";
 
 const openaiClient = createOpenAI({
@@ -18,12 +19,16 @@ export async function generateEmbeddings(values: string[]): Promise<
     return [];
   }
 
-  const { embeddings } = await embedMany({
-    model: embeddingModel,
-    values,
-  });
+  const result = await withTimeout(
+    embedMany({
+      model: embeddingModel,
+      values,
+    }),
+    Timeouts.EMBEDDING,
+    "Embedding generation",
+  );
 
-  return embeddings.map((embedding, i) => ({
+  return result.embeddings.map((embedding, i) => ({
     content: values[i],
     embedding,
   }));

@@ -30,8 +30,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Favor elegant, maintainable solutions over verbose code
 - Proactively address edge cases, race conditions, and security considerations
 - Frame solutions within broader architectural contexts
-- Focus comments on 'why' not 'what'
 - Provide targeted diagnostic approaches when debugging
+- **Commenting**: Focus on WHY, not WHAT. Comments explain non-obvious decisions, not repeat what code does.
+  - ✅ DO: Security decisions, performance optimizations, non-obvious constraints, deliberate non-actions, mathematical formulas, API/library limitations, encoding/format choices
+  - ❌ DON'T: Obvious operations, type information, restating parameter names, verbose file headers, field descriptions (unless non-obvious)
+  - Special: Regex patterns (brief inline explanations), spec references (link to docs), when in doubt (skip if code is well-named)
 
 ## Project Overview
 
@@ -73,6 +76,90 @@ bun run db:studio      # Open Drizzle Studio GUI
 - **Instance**: Exported from `lib/db/index.ts` as `db`
 - **Extensions**: pgvector for semantic search
 - **Seeding**: Run `bun run db:seed` to process markdown files from `content/hr/`, chunk them, generate embeddings (OpenAI), and store in database
+
+### Validation Strategy (Three-Layer Architecture)
+
+**CRITICAL**: This project uses a three-layer validation strategy. Follow these rules strictly.
+
+#### Layer 1: API Validation (Request/Response Contracts)
+- **Purpose**: Validate HTTP requests, enforce API contracts
+- **Location**: Inline Zod schemas in route handlers (`app/api/v1/**/route.ts`)
+- **When to use**: Validating request bodies, query parameters, headers
+- **Example**:
+  ```typescript
+  // app/api/v1/chat/route.ts
+  const chatRequestSchema = z.object({
+    messages: z.array(messageSchema).min(1).max(50),
+  });
+  const body = chatRequestSchema.parse(await request.json());
+  ```
+
+#### Layer 2: Database Validation (Business Rules & Data Integrity)
+- **Purpose**: Validate data BEFORE database operations, enforce business rules
+- **Location**: `lib/db/operations.ts` (validated helpers)
+- **Schemas**: `lib/db/schema/validation.ts` (drizzle-zod)
+- **When to use**: ALL database insert/update operations
+- **Critical rules enforced**:
+  - Embedding dimensions must be exactly 1536 (OpenAI text-embedding-3-small)
+  - Content cannot be empty
+  - Chunk indexes must be non-negative
+  - Checksums cannot be empty
+
+**REQUIRED PATTERN**:
+```typescript
+// ✅ CORRECT - Use validated operations
+import { insertDocument, insertChunks } from '@/lib/db/operations';
+
+await insertChunks([{
+  documentId: doc.id,
+  chunkIndex: 0,
+  content: 'chunk content',
+  embedding: new Array(1536).fill(0.1), // Validated: must be 1536 dimensions
+}]);
+
+// ❌ WRONG - Never use direct db.insert() without validation
+await db.insert(chunks).values({...}); // FORBIDDEN (bypasses validation)
+```
+
+**Exception**: Advanced Drizzle operations (e.g., `onConflictDoNothing`) can use direct `db.insert()` but MUST manually validate first:
+```typescript
+const validated = chunkInsertSchema.parse(data);
+await db.insert(chunks).values(validated).onConflictDoNothing();
+```
+
+#### Layer 3: Database Constraints (Last Line of Defense)
+- **Purpose**: Enforce structural integrity at database level
+- **Examples**: Foreign keys, NOT NULL, CHECK constraints, unique indexes
+- **When to use**: Automatically enforced by PostgreSQL
+
+#### Available Validated Operations
+
+```typescript
+// Document operations
+import { insertDocument, insertDocuments } from '@/lib/db/operations';
+
+const doc = await insertDocument({
+  checksum: 'abc123',
+  sourceFile: 'policy.md',
+  title: 'HR Policy'
+});
+
+// Chunk operations (batch insert)
+import { insertChunks } from '@/lib/db/operations';
+
+await insertChunks([
+  { documentId: doc.id, chunkIndex: 0, content: '...', embedding: [...] },
+  { documentId: doc.id, chunkIndex: 1, content: '...', embedding: [...] },
+]);
+```
+
+**Why this matters**:
+1. **Embedding dimensions**: Database can't enforce vector dimensions; validation prevents silent failures in similarity search
+2. **Better errors**: "Embedding must have 1536 dimensions" vs cryptic "CHECK constraint failed"
+3. **Fail fast**: Catch errors before expensive database round-trips
+4. **Type safety**: End-to-end type checking from input to database
+
+**See**: `spec/adr/002-database-validation-layer.md` for full architecture decision
 
 ### Environment Variables
 Required variables validated via `@t3-oss/env-nextjs` with Zod in `lib/env.mjs`:
@@ -145,6 +232,34 @@ bun run eval:ci            # CI-friendly gate with reports (fails on assertion f
 - Highlight performance implications and optimization opportunities
 - Suggest design alternatives when appropriate
 - Well-named functions/variables over excessive comments
+
+### Commenting Guidelines
+
+**"Focus on WHY, not WHAT"** - Comments explain non-obvious decisions, not repeat what code does.
+
+**✅ DO write comments for (7 categories)**:
+
+1. Security decisions (e.g., timing attack prevention)
+2. Performance optimizations (e.g., sort-once percentile calculation)
+3. Non-obvious constraints (e.g., memory growth prevention)
+4. Deliberate non-actions (e.g., letting errors fail naturally)
+5. Mathematical formulas (e.g., similarity calculations with test references)
+6. API/Library limitations (e.g., unsupported parameters)
+7. Encoding/format choices (e.g., Base36 for compactness)
+
+**❌ DON'T write comments for (5 categories)**:
+
+1. Obvious operations (e.g., "Get or create entry")
+2. Type information (TypeScript signatures are self-documenting)
+3. Restating parameter names (Obvious from function signature)
+4. Verbose file headers (Long examples that duplicate implementation)
+5. Field descriptions (Unless non-obvious)
+
+**Special cases**:
+
+- Regex patterns: Brief inline explanations are helpful
+- Spec references: Link to architectural docs
+- When in doubt: Skip the comment if code is well-named and types are clear
 
 ### Testing Strategy
 - Suggest comprehensive test approaches

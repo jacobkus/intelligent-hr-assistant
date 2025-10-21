@@ -13,7 +13,8 @@ import matter from "gray-matter";
 import { chunkMarkdownBySections } from "@/lib/ai/chunking";
 import { generateEmbeddings } from "@/lib/ai/embedding";
 import { db } from "@/lib/db";
-import { chunks, documents } from "@/lib/db/schema";
+import { insertChunks } from "@/lib/db/operations";
+import { documents } from "@/lib/db/schema";
 import { env } from "@/lib/env.mjs";
 
 const CONTENT_DIR = join(process.cwd(), "content", "hr");
@@ -72,6 +73,8 @@ async function seed() {
       const title = doc.frontmatter.title || file.replace(".md", "");
 
       // Check if document already exists (idempotent seeding)
+      // Note: We use db.insert directly here because insertDocument() doesn't support onConflictDoNothing
+      // Validation is still enforced by the schema
       const [existingDoc] = await db
         .insert(documents)
         .values({
@@ -99,7 +102,7 @@ async function seed() {
       const embeddingResults = await generateEmbeddings(chunkContents);
       console.log(`  🔢 Generated ${embeddingResults.length} embeddings`);
 
-      // Insert chunks with embeddings (batch insert)
+      // Insert chunks with embeddings (batch insert with validation)
       const chunksToInsert = [];
       for (let i = 0; i < documentChunks.length; i++) {
         const chunk = documentChunks[i];
@@ -120,9 +123,21 @@ async function seed() {
       }
 
       if (chunksToInsert.length > 0) {
-        await db.insert(chunks).values(chunksToInsert);
-        totalChunks += chunksToInsert.length;
-        totalEmbeddings += chunksToInsert.length;
+        // Use validated insert - will catch invalid embeddings (wrong dimensions, etc.)
+        try {
+          await insertChunks(chunksToInsert);
+          totalChunks += chunksToInsert.length;
+          totalEmbeddings += chunksToInsert.length;
+        } catch (error) {
+          if (error instanceof Error && error.name === "ZodError") {
+            console.error(
+              `  ❌ Validation failed for chunks in ${file}:`,
+              error.message,
+            );
+            throw error;
+          }
+          throw error;
+        }
       }
 
       console.log(`  ✅ Completed\n`);
