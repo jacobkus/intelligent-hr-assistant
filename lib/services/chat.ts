@@ -343,14 +343,14 @@ export async function retrieveContext(
     .reverse()
     .find((msg) => msg.role === "user");
 
-  if (!latestUserMessage || typeof latestUserMessage.content !== "string") {
+  if (!latestUserMessage) {
     return [];
   }
 
   const results = await semanticSearch({
     query: latestUserMessage.content,
-    topK: 8,
-    minSimilarity: 0.7,
+    topK: 5,
+    minSimilarity: 0.5,
   });
 
   return results.map((result) => ({

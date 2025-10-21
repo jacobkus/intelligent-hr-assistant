@@ -13,16 +13,17 @@ providers:
   # End-to-end via local API (enable dev server):
   - id: http
     config:
-      url: http://localhost:3000/api/chat?debug=1
+      url: http://localhost:3000/api/v1/chat?debug=1
       method: POST
       headers:
         Content-Type: application/json
+        Authorization: Bearer {{API_SECRET_TOKEN}}
       body:
         messages:
           - role: user
             content: "{{query}}"
       transformResponse: json
-
+      transform: 'output && output.answer ? output.answer : (typeof output === "string" ? output : JSON.stringify(output))'
 defaultTest:
   assert:
     # Prefer concise outputs

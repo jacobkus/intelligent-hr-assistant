@@ -3,18 +3,6 @@ import { getAllMetrics } from "@/lib/api/metrics";
 import { generateRequestId } from "@/lib/api/request-id";
 import { validateBearerToken } from "@/lib/auth/bearer";
 
-/**
- * GET /api/v1/metrics
- *
- * Returns current metrics for all endpoints.
- * Requires authentication.
- *
- * Metrics include:
- * - Request counts
- * - Error rates
- * - Latency percentiles (P50, P95, P99)
- * - Rate limit hits
- */
 export async function GET(request: Request) {
   const requestId = generateRequestId();
 

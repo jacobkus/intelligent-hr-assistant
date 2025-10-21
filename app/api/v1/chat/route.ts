@@ -1,7 +1,7 @@
 import { openai } from "@ai-sdk/openai";
 import { streamText } from "ai";
 import type { Logger } from "pino";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { checkPayloadSize, ErrorResponses } from "@/lib/api/errors";
 import { createRequestLogger, logError } from "@/lib/api/logger";
 import {
@@ -190,7 +190,7 @@ function handleChatError(
   });
 
   if (error instanceof TimeoutError) {
-    const operation = error.message.includes("Embedding")
+    const operation = (error as TimeoutError).message.includes("Embedding")
       ? "Embedding generation"
       : "LLM response";
     requestLogger.warn({ timeout_operation: operation }, "Request timed out");
@@ -232,7 +232,8 @@ export async function POST(request: Request) {
 
   try {
     const validation = await validateChatRequest(request, requestId);
-    if (!validation.success) return validation.error;
+    if (!validation.success)
+      return (validation as { success: false; error: Response }).error;
 
     const { body } = validation;
 
@@ -240,7 +241,6 @@ export async function POST(request: Request) {
       body.messages,
     );
 
-    // AI SDK v5.0.76 doesn't support max_output_tokens (validated for API compat, OpenAI defaults apply)
     const result = streamText({
       model: openai(env.LLM_MODEL),
       system: systemPrompt,

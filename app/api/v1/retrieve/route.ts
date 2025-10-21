@@ -16,7 +16,7 @@ import { semanticSearch } from "@/lib/services/retrieval";
 const retrieveRequestSchema = z.object({
   query: z.string().min(1).max(500, "Query must be between 1-500 characters"),
   top_k: z.number().int().min(1).max(50).optional().default(8),
-  min_similarity: z.number().min(0).max(1).optional().default(0.7),
+  min_similarity: z.number().min(0).max(1).optional().default(0.5),
   filters: z
     .object({
       document_id: z.string().uuid().optional(),

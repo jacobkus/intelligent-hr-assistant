@@ -9,26 +9,21 @@ import "dotenv/config";
 import { createHash } from "node:crypto";
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { eq } from "drizzle-orm";
 import matter from "gray-matter";
 import { chunkMarkdownBySections } from "@/lib/ai/chunking";
 import { generateEmbeddings } from "@/lib/ai/embedding";
 import { db } from "@/lib/db";
-import { insertChunks } from "@/lib/db/operations";
-import { documents } from "@/lib/db/schema";
+import { chunks, documents } from "@/lib/db/schema";
+import { chunkInsertSchema } from "@/lib/db/schema/validation";
 import { env } from "@/lib/env.mjs";
 
 const CONTENT_DIR = join(process.cwd(), "content", "hr");
 
-/**
- * Generate SHA-256 checksum for content deduplication
- */
 function generateChecksum(content: string): string {
   return createHash("sha256").update(content).digest("hex");
 }
 
-/**
- * Load and parse a single markdown file
- */
 async function loadDocument(filePath: string) {
   const fileContent = await readFile(filePath, "utf-8");
   const { data: frontmatter, content } = matter(fileContent);
@@ -41,9 +36,6 @@ async function loadDocument(filePath: string) {
   };
 }
 
-/**
- * Main seeding function
- */
 async function seed() {
   console.log("🌱 Starting database seed...\n");
   console.log("📁 Content directory:", CONTENT_DIR);
@@ -72,10 +64,10 @@ async function seed() {
       const doc = await loadDocument(filePath);
       const title = doc.frontmatter.title || file.replace(".md", "");
 
-      // Check if document already exists (idempotent seeding)
-      // Note: We use db.insert directly here because insertDocument() doesn't support onConflictDoNothing
-      // Validation is still enforced by the schema
-      const [existingDoc] = await db
+      // Upsert document idempotently and always resolve the document id
+      let documentId: string | null = null;
+
+      const insertedDocs = await db
         .insert(documents)
         .values({
           checksum: doc.checksum,
@@ -85,13 +77,27 @@ async function seed() {
         .onConflictDoNothing({ target: documents.checksum })
         .returning({ id: documents.id });
 
-      if (!existingDoc) {
-        console.log(`  ⏭️  Skipped (already exists)`);
-        skippedDuplicates++;
-        continue;
-      }
+      if (insertedDocs.length > 0) {
+        // Newly inserted document in this run
+        documentId = insertedDocs[0].id;
+        totalDocuments++;
+      } else {
+        // Document already existed — fetch its id so we can (re)insert chunks
+        const existing = await db
+          .select({ id: documents.id })
+          .from(documents)
+          .where(eq(documents.checksum, doc.checksum));
 
-      totalDocuments++;
+        documentId = existing[0]?.id ?? null;
+        if (!documentId) {
+          console.log(`  ❌ Could not resolve existing document id, skipping`);
+          skippedDuplicates++;
+          continue;
+        }
+
+        skippedDuplicates++;
+        console.log(`  ℹ️  Document exists — continuing to (re)insert chunks`);
+      }
 
       // Chunk the content
       const documentChunks = chunkMarkdownBySections(doc.content);
@@ -102,8 +108,19 @@ async function seed() {
       const embeddingResults = await generateEmbeddings(chunkContents);
       console.log(`  🔢 Generated ${embeddingResults.length} embeddings`);
 
+      // Ensure we have a document id before proceeding
+      if (!documentId) {
+        throw new Error("Invariant violation: documentId not resolved");
+      }
+
       // Insert chunks with embeddings (batch insert with validation)
-      const chunksToInsert = [];
+      const chunksToInsert = [] as Array<{
+        documentId: string;
+        chunkIndex: number;
+        content: string;
+        sectionTitle: string | null;
+        embedding: number[];
+      }>;
       for (let i = 0; i < documentChunks.length; i++) {
         const chunk = documentChunks[i];
         const embedding = embeddingResults[i]?.embedding;
@@ -114,7 +131,7 @@ async function seed() {
         }
 
         chunksToInsert.push({
-          documentId: existingDoc.id,
+          documentId: documentId,
           chunkIndex: chunk.chunkIndex,
           content: chunk.content,
           sectionTitle: chunk.sectionTitle,
@@ -123,11 +140,22 @@ async function seed() {
       }
 
       if (chunksToInsert.length > 0) {
-        // Use validated insert - will catch invalid embeddings (wrong dimensions, etc.)
+        // Validate and idempotently insert chunks; skip duplicates by unique (document_id, chunk_index)
         try {
-          await insertChunks(chunksToInsert);
-          totalChunks += chunksToInsert.length;
-          totalEmbeddings += chunksToInsert.length;
+          const validated = chunksToInsert.map((c) =>
+            chunkInsertSchema.parse(c),
+          );
+
+          await db
+            .insert(chunks)
+            .values(validated)
+            .onConflictDoNothing({
+              target: [chunks.documentId, chunks.chunkIndex],
+            });
+
+          // Note: Using onConflictDoNothing means some may be skipped; we count attempted inserts
+          totalChunks += validated.length;
+          totalEmbeddings += validated.length;
         } catch (error) {
           if (error instanceof Error && error.name === "ZodError") {
             console.error(

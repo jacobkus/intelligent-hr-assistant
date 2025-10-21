@@ -8,7 +8,7 @@ vi.mock("@/lib/env.mjs", () => ({
     DATABASE_URL: "mock-db-url",
     OPENAI_API_KEY: "mock-key",
     ALLOWED_ORIGINS: ["http://localhost:3000"],
-    LLM_MODEL: "gpt-4o-mini",
+    LLM_MODEL: "gpt-5-mini",
   },
 }));
 

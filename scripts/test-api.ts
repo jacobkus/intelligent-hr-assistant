@@ -70,7 +70,7 @@ async function testRetrieveEndpoint(): Promise<TestResult> {
       body: JSON.stringify({
         query: "What are the vacation day policies?",
         top_k: 5,
-        min_similarity: 0.7,
+        min_similarity: 0.5,
       }),
     });
 

@@ -6,20 +6,9 @@ import { env } from "@/lib/env.mjs";
  * Per spec: log request IDs, timestamps, endpoints, status codes, latency.
  */
 
-const isDevelopment = env.NODE_ENV === "development";
-
 export const logger = pino({
   level: env.NODE_ENV === "production" ? "info" : "debug",
-  transport: isDevelopment
-    ? {
-        target: "pino-pretty",
-        options: {
-          colorize: true,
-          translateTime: "HH:MM:ss",
-          ignore: "pid,hostname",
-        },
-      }
-    : undefined,
+  // Avoid pretty transport to prevent worker threads in Next runtime
   redact: {
     paths: [
       "req.headers.authorization",

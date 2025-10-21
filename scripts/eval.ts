@@ -7,9 +7,18 @@ const question =
   process.argv.slice(2).join(" ") || "What is the parental leave policy?";
 
 async function main() {
-  const res = await fetch("http://localhost:3000/api/chat?debug=1", {
+  const token = process.env.API_SECRET_TOKEN;
+  if (!token) {
+    console.error("API_SECRET_TOKEN not found in environment");
+    process.exit(1);
+  }
+
+  const res = await fetch("http://localhost:3000/api/v1/chat?debug=1", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
     body: JSON.stringify({ messages: [{ role: "user", content: question }] }),
   });
   if (!res.ok) {
