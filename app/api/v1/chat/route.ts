@@ -13,7 +13,7 @@ import { checkRateLimit, RateLimits } from "@/lib/api/rate-limit";
 import { generateRequestId } from "@/lib/api/request-id";
 import { TimeoutError } from "@/lib/api/timeout";
 import { extractToken, validateBearerToken } from "@/lib/auth/bearer";
-import { env } from "@/lib/env.mjs";
+import { env } from "@/lib/env";
 import {
   buildSystemPrompt,
   detectSuspiciousInput,

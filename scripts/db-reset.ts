@@ -7,7 +7,7 @@
 
 import "dotenv/config";
 import { neon } from "@neondatabase/serverless";
-import { env } from "@/lib/env.mjs";
+import { env } from "@/lib/env";
 
 const sql = neon(env.DATABASE_URL);
 

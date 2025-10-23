@@ -20,7 +20,7 @@ Source: Derived from `spec/app/10_app.md` (PRD) and repository conventions.
 - **AI**: Vercel AI SDK (`ai`, `@ai-sdk/openai`, `@ai-sdk/react`) with OpenAI models.
 - **Styling**: Tailwind CSS v4 + shadcn/ui (New York), Lucide icons.
 - **Lint/format**: Biome.
-- **Env validation**: `@t3-oss/env-nextjs` + Zod in `lib/env.mjs`.
+- **Env validation**: `@t3-oss/env-nextjs` + Zod in `lib/env.ts`.
 
 ## 3) Application Architecture
 ### 3.1 Rendering model
@@ -75,7 +75,7 @@ Source: Derived from `spec/app/10_app.md` (PRD) and repository conventions.
 - **Near‑term**: Encapsulate language handling to support Polish without core refactors.
 
 ## 10) Environment & Configuration
-- **Validated env**: `DATABASE_URL`, `OPENAI_API_KEY`, `NODE_ENV` validated in `lib/env.mjs` via Zod; imported as a single `env` accessor.
+- **Validated env**: `DATABASE_URL`, `OPENAI_API_KEY`, `NODE_ENV` validated in `lib/env.ts` via Zod; imported as a single `env` accessor.
 - **Type safety**: All runtime code uses the validated `env` to avoid undefined configuration.
 
 ## 11) Developer Experience
@@ -105,7 +105,7 @@ Source: Derived from `spec/app/10_app.md` (PRD) and repository conventions.
 ## 15) Directory & Ownership Conventions
 - **API routes**: `app/api/**` (App Router route handlers).
 - **DB**: `lib/db/index.ts` (client), `lib/db/schema/**` (tables), `lib/db/migrations/**` (drizzle‑kit output).
-- **Env**: `lib/env.mjs` (Zod schemas and validated accessor).
+- **Env**: `lib/env.ts` (Zod schemas and validated accessor).
 - **UI**: `components/**`, `components/ui/**` (shadcn/ui), global styles in `app/globals.css`.
 - **Specs**: `spec/app/**` for product and architecture documents.
 

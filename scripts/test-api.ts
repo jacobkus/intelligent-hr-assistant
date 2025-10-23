@@ -10,7 +10,7 @@
  * - Dev server running: bun dev
  */
 
-import { env } from "@/lib/env.mjs";
+import { env } from "@/lib/env";
 
 const BASE_URL = "http://localhost:3000/api/v1";
 const TOKEN = env.API_SECRET_TOKEN;

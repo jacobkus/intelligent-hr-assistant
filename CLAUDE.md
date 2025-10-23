@@ -162,12 +162,12 @@ await insertChunks([
 **See**: `spec/adr/002-database-validation-layer.md` for full architecture decision
 
 ### Environment Variables
-Required variables validated via `@t3-oss/env-nextjs` with Zod in `lib/env.mjs`:
+Required variables validated via `@t3-oss/env-nextjs` with Zod in `lib/env.ts`:
 - `DATABASE_URL` - Neon PostgreSQL connection string
 - `OPENAI_API_KEY` - OpenAI API key for AI SDK
 - `NODE_ENV` - development | test | production (default: development)
 
-**IMPORTANT**: All env vars must be added to `lib/env.mjs` for type-safe access
+**IMPORTANT**: All env vars must be added to `lib/env.ts` for type-safe access
 
 ### Path Aliases
 TypeScript `@/*` maps to root:
@@ -223,7 +223,7 @@ bun run eval:ci            # CI-friendly gate with reports (fails on assertion f
 2. **React 19**: Be aware of breaking changes from React 18
 3. **Tailwind v4**: Latest major version with PostCSS
 4. **Schema evolution**: Create migrations as data model evolves
-5. **Env validation**: All vars must go through `lib/env.mjs`
+5. **Env validation**: All vars must go through `lib/env.ts`
 
 ## Coding Guidelines
 

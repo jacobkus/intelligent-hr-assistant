@@ -1,5 +1,5 @@
 import { timingSafeEqual } from "node:crypto";
-import { env } from "@/lib/env.mjs";
+import { env } from "@/lib/env";
 
 export interface AuthResult {
   authorized: boolean;

@@ -1,5 +1,5 @@
 import pino from "pino";
-import { env } from "@/lib/env.mjs";
+import { env } from "@/lib/env";
 
 /**
  * Structured logging via Pino. Redacts auth headers.

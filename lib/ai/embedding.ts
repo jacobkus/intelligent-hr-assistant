@@ -1,7 +1,7 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import { embedMany } from "ai";
 import { Timeouts, withTimeout } from "@/lib/api/timeout";
-import { env } from "@/lib/env.mjs";
+import { env } from "@/lib/env";
 
 const openaiClient = createOpenAI({
   apiKey: env.OPENAI_API_KEY,

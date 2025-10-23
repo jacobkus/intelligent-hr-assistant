@@ -110,7 +110,7 @@ All **Phase 1 (MUST-FIX)** critical security and stability issues have been reso
 **Issue:** Wildcard `Access-Control-Allow-Origin: *` allowed any origin.
 
 **Fix:**
-- Added `ALLOWED_ORIGINS` env var to `lib/env.mjs`
+- Added `ALLOWED_ORIGINS` env var to `lib/env.ts`
 - Defaults to `http://localhost:3000` for development
 - Supports comma-separated list for multiple origins
 - Updated `getCorsHeaders()` to check request origin against whitelist
@@ -118,7 +118,7 @@ All **Phase 1 (MUST-FIX)** critical security and stability issues have been reso
 - Fixed streaming response CORS headers in `/chat`
 
 **Files Changed:**
-- `lib/env.mjs`
+- `lib/env.ts`
 - `lib/api/headers.ts`
 - `app/api/v1/chat/route.ts`
 - `app/api/v1/retrieve/route.ts`

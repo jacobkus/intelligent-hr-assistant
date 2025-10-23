@@ -16,7 +16,7 @@ import { generateEmbeddings } from "@/lib/ai/embedding";
 import { db } from "@/lib/db";
 import { chunks, documents } from "@/lib/db/schema";
 import { chunkInsertSchema } from "@/lib/db/schema/validation";
-import { env } from "@/lib/env.mjs";
+import { env } from "@/lib/env";
 
 const CONTENT_DIR = join(process.cwd(), "content", "hr");
 

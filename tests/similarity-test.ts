@@ -18,7 +18,7 @@
 import { openai } from "@ai-sdk/openai";
 import { neon } from "@neondatabase/serverless";
 import { embed } from "ai";
-import { env } from "@/lib/env.mjs";
+import { env } from "@/lib/env";
 
 interface TestCase {
   text1: string;

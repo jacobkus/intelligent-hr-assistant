@@ -1,4 +1,4 @@
-import { env } from "@/lib/env.mjs";
+import { env } from "@/lib/env";
 
 /**
  * Standard cache control headers to prevent caching of sensitive HR data.

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 // Mock the env module to return our test token
-vi.mock("@/lib/env.mjs", () => ({
+vi.mock("@/lib/env", () => ({
   env: {
     API_SECRET_TOKEN: "test-token-12345678901234567890123456789012",
     NODE_ENV: "test",
