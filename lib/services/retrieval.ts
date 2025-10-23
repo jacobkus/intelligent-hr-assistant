@@ -36,7 +36,7 @@ export interface RetrievalResult {
 export async function semanticSearch(
   options: RetrievalOptions,
 ): Promise<RetrievalResult[]> {
-  const { query, topK = 5, minSimilarity = 0.5, filters } = options;
+  const { query, topK = 5, minSimilarity = 0.3, filters } = options;
 
   const embeddings = await generateEmbeddings([query]);
   const queryEmbedding = embeddings[0].embedding;

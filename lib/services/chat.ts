@@ -350,7 +350,7 @@ export async function retrieveContext(
   const results = await semanticSearch({
     query: latestUserMessage.content,
     topK: 5,
-    minSimilarity: 0.5,
+    minSimilarity: 0.3,
   });
 
   return results.map((result) => ({
